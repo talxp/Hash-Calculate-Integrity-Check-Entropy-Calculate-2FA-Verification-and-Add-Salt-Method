@@ -11,8 +11,7 @@ def hash_integrityCheck(hashFile, hashValue):
     #Εισαγωγή βιβλιοθήκης os για έλεγχο ύπαρξης αρχείου αλλα και για να μην κανουμε το προγραμμα ποιο πολυπλοκο
     import os
     #Ελέγχουμε αν το αρχείο hash υπάρχει και αν είναι άδειο. 
-    # Αν δεν υπάρχει, σημαίνει ότι είναι η πρώτη εγγραφή και δεν υπάρχει προηγούμενο hash για σύγκριση. 
-     
+    # Αν δεν υπάρχει, σημαίνει ότι είναι η πρώτη εγγραφή και δεν υπάρχει προηγούμενο hash για σύγκριση.  
     if not os.path.exists(hashFile) or os.path.getsize(hashFile) == 0:
         print("Πρώτη εγγραφή, δεν υπάρχει προηγούμενο hash.")
         return
@@ -52,18 +51,17 @@ while True:
     print("        ΜΕΝΟΥ ΕΠΙΛΟΓΩΝ")
     print("="*30)
     print("1. Υπολογισμός Hash")
-    #print("2. Έλεγχος Ακεραιότητας")
+    print("2. Έλεγχος Ακεραιότητας")
     #print("3. Υπολογισμός Εντροπίας")
     #print("4. 2FA Authentication")
     print("5. Έξοδος")
     print("="*30)
 
     epilogi=input("Επίλεξε μια επιλογή (1-5):")
-
+    
     if epilogi=="1":
         #Επιλογή αλγορίθμου και υπολογισμός hash
-        print("Επίλεξε Αλγόριθμο MD5(1),SHA256(2),SHA3(3) ή όλους(4)")
-        algSelect=input()
+        algSelect=input("Επίλεξε Αλγόριθμο MD5(1),SHA256(2),SHA3(3) ή όλους(4)")
 
         #υπολογισμός MD5 hash
         if algSelect=="1":
@@ -71,6 +69,7 @@ while True:
             hashMD5=hashlib.md5(readFile).hexdigest()
             print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
             saveHash(file_md5,hashMD5)
+            integrityCheckid=1
 
         #υπολογισμός SHA256 hash
         elif algSelect=="2":
@@ -78,6 +77,7 @@ while True:
             hashSHA256=hashlib.sha256(readFile).hexdigest()
             print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
             saveHash(file_sha256,hashSHA256)
+            integrityCheckid=2
 
         #υπολογισμός SHA3 hash
         elif algSelect=="3":
@@ -85,6 +85,7 @@ while True:
             hashSHA3=hashlib.sha3_256(readFile).hexdigest()
             print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")  
             saveHash(file_sha3,hashSHA3)
+            integrityCheckid=3
         
         #υπολογισμός όλων των hash
         elif algSelect=="4":
@@ -100,12 +101,29 @@ while True:
             hashSHA3=hashlib.sha3_256(readFile).hexdigest()
             print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
             saveHash(file_sha3,hashSHA3)
+            integrityCheckid=4
 
         #Ελεγχος για μηέγκυρη επιλογή αλγορίθμου
         else:
-            
-            print("Μη έγκυρη επιλογή, δοκίμασε ξανά")
+            print("Μη έγκυρη επιλογή, υπολογίστε ξανά")
             algSelect=input()
+
+    elif epilogi=="2":
+        #Έλεγχος ακεραιότητας αρχείου με βάση το αποθηκευμένο hash αρχείο
+        if integrityCheckid==1:
+            hash_integrityCheck(file_md5,hashMD5)
+        elif integrityCheckid==2:
+            hash_integrityCheck(file_sha256,hashSHA256)
+        elif integrityCheckid==3:
+            hash_integrityCheck(file_sha3,hashSHA3)
+        elif integrityCheckid==4:
+            hash_integrityCheck(file_md5,hashMD5)
+            hash_integrityCheck(file_sha256,hashSHA256)
+            hash_integrityCheck(file_sha3,hashSHA3)
+        else:
+            print("Μη έγκυρη επιλογή, υπολογίστε πρώτα το hash για να κάνετε τον έλεγχο ακεραιότητας.")
+            
+    
     elif epilogi=="5":
        break
     else:
