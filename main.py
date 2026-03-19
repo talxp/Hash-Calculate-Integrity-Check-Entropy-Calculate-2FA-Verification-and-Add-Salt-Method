@@ -63,14 +63,6 @@ elif algSelect=="4":
  print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
  saveHash(file_sha3,hashSHA3)
 
- hashSHA256=hashlib.sha256(readFile).hexdigest()
- print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
- saveHash(file_sha256,hashSHA256)
-
- hashSHA3=hashlib.sha3_256(readFile).hexdigest()
- print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
- saveHash(file_sha3,hashSHA3)
-
 #Ελεγχος για έγκυρη επιλογή αλγορίθμου
 else:
  
