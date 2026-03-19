@@ -45,57 +45,71 @@ except FileNotFoundError:
  print("Το αρχείο δεν βρέθηκε, δοκίμασε ξανά")
  giveFile=input()
 
-#Επιλογή αλγορίθμου και υπολογισμός hash
-print("Επίλεξε Αλγόριθμο MD5(1),SHA256(2),SHA3(3) ή όλους(4)")
-algSelect=input()
 
-#υπολογισμός MD5 hash
-if algSelect=="1":
- 
- hashMD5=hashlib.md5(readFile).hexdigest()
- print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
- hash_integrityCheck(file_md5,hashMD5)
- saveHash(file_md5,hashMD5)
+while True:
 
-#υπολογισμός SHA256 hash
-elif algSelect=="2":
- 
- hashSHA256=hashlib.sha256(readFile).hexdigest()
- print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
- hash_integrityCheck(file_sha256,hashSHA256)
- saveHash(file_sha256,hashSHA256)
+    print("\n" + "="*30)
+    print("        ΜΕΝΟΥ ΕΠΙΛΟΓΩΝ")
+    print("="*30)
+    print("1. Υπολογισμός Hash")
+    #print("2. Έλεγχος Ακεραιότητας")
+    #print("3. Υπολογισμός Εντροπίας")
+    #print("4. 2FA Authentication")
+    print("5. Έξοδος")
+    print("="*30)
 
-#υπολογισμός SHA3 hash
-elif algSelect=="3":
+    epilogi=input("Επίλεξε μια επιλογή (1-5):")
 
- hashSHA3=hashlib.sha3_256(readFile).hexdigest()
- print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
- hash_integrityCheck(file_sha3,hashSHA3)    
- saveHash(file_sha3,hashSHA3)
- 
-#υπολογισμός όλων των hash
-elif algSelect=="4":
- 
- hashMD5=hashlib.md5(readFile).hexdigest()
- print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
- hash_integrityCheck(file_md5,hashMD5)
- saveHash(file_md5,hashMD5)
+    if epilogi=="1":
+        #Επιλογή αλγορίθμου και υπολογισμός hash
+        print("Επίλεξε Αλγόριθμο MD5(1),SHA256(2),SHA3(3) ή όλους(4)")
+        algSelect=input()
 
- hashSHA256=hashlib.sha256(readFile).hexdigest()
- print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
- hash_integrityCheck(file_sha256,hashSHA256)
- saveHash(file_sha256,hashSHA256)
+        #υπολογισμός MD5 hash
+        if algSelect=="1":
+        
+            hashMD5=hashlib.md5(readFile).hexdigest()
+            print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
+            saveHash(file_md5,hashMD5)
 
- hashSHA3=hashlib.sha3_256(readFile).hexdigest()
- print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
- hash_integrityCheck(file_sha3,hashSHA3)
- saveHash(file_sha3,hashSHA3)
+        #υπολογισμός SHA256 hash
+        elif algSelect=="2":
+        
+            hashSHA256=hashlib.sha256(readFile).hexdigest()
+            print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
+            saveHash(file_sha256,hashSHA256)
 
-#Ελεγχος για μηέγκυρη επιλογή αλγορίθμου
-else:
- 
- print("Μη έγκυρη επιλογή, δοκίμασε ξανά")
- algSelect=input()
+        #υπολογισμός SHA3 hash
+        elif algSelect=="3":
 
+            hashSHA3=hashlib.sha3_256(readFile).hexdigest()
+            print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")  
+            saveHash(file_sha3,hashSHA3)
+        
+        #υπολογισμός όλων των hash
+        elif algSelect=="4":
+        
+            hashMD5=hashlib.md5(readFile).hexdigest()
+            print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
+            saveHash(file_md5,hashMD5)
+
+            hashSHA256=hashlib.sha256(readFile).hexdigest()
+            print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
+            saveHash(file_sha256,hashSHA256)
+
+            hashSHA3=hashlib.sha3_256(readFile).hexdigest()
+            print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
+            saveHash(file_sha3,hashSHA3)
+
+        #Ελεγχος για μηέγκυρη επιλογή αλγορίθμου
+        else:
+            
+            print("Μη έγκυρη επιλογή, δοκίμασε ξανά")
+            algSelect=input()
+    elif epilogi=="5":
+       break
+    else:
+        print("Μη έγκυρη επιλογή, δοκίμασε ξανά.")
+       
 
  
