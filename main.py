@@ -27,9 +27,9 @@ def hash_integrityCheck(hashFile, hashValue):
 
 #Αποθήκευση των hash σε αρχείο .hash
 def saveHash(hashFile,hashValue):
- with open(hashFile,"w") as f:
-  f.write(hashValue)
- print(f"Το hash αποθηκεύτηκε στο αρχείο {hashFile}")
+   with open(hashFile,"w") as f:
+     f.write(hashValue)
+   print(f"Το hash αποθηκεύτηκε στο αρχείο {hashFile}")
 
 #Είσοδος αρχείου και έλεγχος αν υπάρχει
 try:
@@ -51,17 +51,24 @@ while True:
     print("        ΜΕΝΟΥ ΕΠΙΛΟΓΩΝ")
     print("="*30)
     print("1. Υπολογισμός Hash")
-    print("2. Έλεγχος Ακεραιότητας")
-    #print("3. Υπολογισμός Εντροπίας")
-    #print("4. 2FA Authentication")
     print("5. Έξοδος")
     print("="*30)
 
     epilogi=input("Επίλεξε μια επιλογή (1-5):")
     
     if epilogi=="1":
+
+        print("\n" + "="*30)
+        print("  ΜΕΝΟΥ ΕΠΙΛΟΓΩΝ ΑΛΓΟΡΙΘΜΟΥ")
+        print("="*30)
+        print("1. Υπολογισμός MD5 hash")
+        print("2. Υπολογισμός SHA256 hash")
+        print("3. Υπολογισμός SHA3 hash")
+        print("4. Υπολογισμός διπλή SHA256 hash")
+        print("5. Υπολογισμός όλων των hash")
+        print("-"*30)
         #Επιλογή αλγορίθμου και υπολογισμός hash
-        algSelect=input("Επίλεξε Αλγόριθμο MD5(1),SHA256(2),SHA3(3) ή όλους(4)")
+        algSelect=input()
 
         #υπολογισμός MD5 hash
         if algSelect=="1":
@@ -69,7 +76,7 @@ while True:
             hashMD5=hashlib.md5(readFile).hexdigest()
             print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
             saveHash(file_md5,hashMD5)
-            integrityCheckid=1
+            
 
         #υπολογισμός SHA256 hash
         elif algSelect=="2":
@@ -77,7 +84,7 @@ while True:
             hashSHA256=hashlib.sha256(readFile).hexdigest()
             print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
             saveHash(file_sha256,hashSHA256)
-            integrityCheckid=2
+            
 
         #υπολογισμός SHA3 hash
         elif algSelect=="3":
@@ -85,10 +92,15 @@ while True:
             hashSHA3=hashlib.sha3_256(readFile).hexdigest()
             print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")  
             saveHash(file_sha3,hashSHA3)
-            integrityCheckid=3
-        
-        #υπολογισμός όλων των hash
+            
         elif algSelect=="4":
+           hashSHA256=hashlib.sha256(readFile).hexdigest()
+           hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
+           print(f"Το διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
+           saveHash(file_sha256,hashSHA256double)
+            
+        #υπολογισμός όλων των hash
+        elif algSelect=="5":
         
             hashMD5=hashlib.md5(readFile).hexdigest()
             print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
@@ -101,30 +113,18 @@ while True:
             hashSHA3=hashlib.sha3_256(readFile).hexdigest()
             print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
             saveHash(file_sha3,hashSHA3)
-            integrityCheckid=4
 
-        #Ελεγχος για μηέγκυρη επιλογή αλγορίθμου
+            hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
+            print(f"Το διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
+            saveHash(file_sha256,hashSHA256double)
+            
+            
+        #Ελεγχος για μη έγκυρη επιλογή αλγορίθμου
         else:
             print("Μη έγκυρη επιλογή, υπολογίστε ξανά")
             algSelect=input()
 
     elif epilogi=="2":
-        #Έλεγχος ακεραιότητας αρχείου με βάση το αποθηκευμένο hash αρχείο
-        if integrityCheckid==1:
-            hash_integrityCheck(file_md5,hashMD5)
-        elif integrityCheckid==2:
-            hash_integrityCheck(file_sha256,hashSHA256)
-        elif integrityCheckid==3:
-            hash_integrityCheck(file_sha3,hashSHA3)
-        elif integrityCheckid==4:
-            hash_integrityCheck(file_md5,hashMD5)
-            hash_integrityCheck(file_sha256,hashSHA256)
-            hash_integrityCheck(file_sha3,hashSHA3)
-        else:
-            print("Μη έγκυρη επιλογή, υπολογίστε πρώτα το hash για να κάνετε τον έλεγχο ακεραιότητας.")
-            
-    
-    elif epilogi=="5":
        break
     else:
         print("Μη έγκυρη επιλογή, δοκίμασε ξανά.")
