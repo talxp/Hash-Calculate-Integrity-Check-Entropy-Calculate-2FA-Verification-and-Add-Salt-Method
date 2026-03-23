@@ -6,13 +6,16 @@ import pyotp
 
 
 
-
+#Προσθήκη Salt
 def add_Salt(FileName):
+    #Δημιουργία τυχαίου Salt 16Bytes
     salt=os.urandom(16)
+    #Διάβασμα αρχείου
     with open(FileName, "rb") as f:
         data=f.read()
+    #Προσθήκη Salt στο αρχείο
     saltedData=salt+data    
-    return saltedData
+    return salt,saltedData
 
 
 #Ταυτοποίηση με 2FA (Two-Factor Authentication) 
@@ -54,27 +57,44 @@ def calculate_entyropy(file_name):
     
     return entropy
 
-
-#Έλεγχος ακεραιότητας αρχείου με βάση το αποθηκευμένο hash
-def hash_integrityCheck(hashFile, hashValue):
-
-    #Ελέγχουμε αν το αρχείο hash υπάρχει και αν είναι άδειο. 
-    # Αν δεν υπάρχει σημαίνει ότι είναι η πρώτη εγγραφή και δεν υπάρχει προηγούμενο hash για σύγκριση.  
+#Έλεγχος ακεραιότητας αρχείων
+def hash_integrityCheck(hashFile, giveFile, algorithm):
+    
     if not os.path.exists(hashFile) or os.path.getsize(hashFile) == 0:
         print("Πρώτη εγγραφή, δεν υπάρχει προηγούμενο hash.")
         return
     
-    # Αν υπάρχει διαβάζουμε το αποθηκευμένο hash και συγκρίνουμε με το νέο hash που υπολογίσαμε.
+    #Πέρνει το hash file και ξεχωρίζει το Salt με το Hash 
     with open(hashFile, "r") as f:
-        storedHash = f.read().strip()
-
-    #Αν τα δύο hash είναι ίδια σημαίνει ότι το αρχείο δεν έχει τροποποιηθεί.
-    if storedHash == hashValue:
-        print("Το αρχείο δεν έχει τροποποιηθεί ")
-
-    # Αν είναι διαφορετικά σημαίνει ότι το αρχείο έχει αλλοιωθεί.
+        #Αποθηκεύει το Salt του αποθηκευμένου hash file  
+        storedSalt = bytes.fromhex(f.readline().strip())
+        #Αποθηκεύει το Hash του αποθηκευμένου hash file  
+        storedHash = f.readline().strip()
+    
+    #Διαβάζει το τρέχον αρχείο 
+    with open(giveFile, "rb") as f:
+        readFile = f.read()
+    
+    #Προσθέτει το παλιό Salt με το τρέχονν αρχείο
+    saltedData = storedSalt + readFile
+    
+    #Υπολογίζει το τρέχον hash για το τρέχον Salted File ανάλογα με τον αλγόριθμο που έχει επιλέξει
+    if algorithm == "md5":
+        currentHash = hashlib.md5(saltedData).hexdigest()
+    elif algorithm == "sha256":
+        currentHash = hashlib.sha256(saltedData).hexdigest()
+    elif algorithm == "sha3":
+        currentHash = hashlib.sha3_256(saltedData).hexdigest()
+    elif algorithm == "sha256double":
+        firstHash = hashlib.sha256(saltedData).hexdigest()
+        currentHash = hashlib.sha256(firstHash.encode()).hexdigest()
+    
+    #Ελέγχει αν το τρέχον hash είναι ίδιο με το αποθηκευμένο hash
+    if currentHash == storedHash:
+        print("Το αρχείο δεν έχει τροποποιηθεί")
     else:
-        print("Το αρχείο έχει αλλοιωθεί ")
+        print("Το αρχείο έχει αλλοιωθεί")
+
 
 #Δημιουργία ονόματος αρχείου hash
 def createHashFileName(giveFile,algorithm):
@@ -83,11 +103,11 @@ def createHashFileName(giveFile,algorithm):
     return hashFileName
 
 
-#Αποθήκευση των hash σε αρχείο .hash
-def saveHash(hashFile,hashValue):
+#Αποθήκευση των hash σε αρχείο .hash αλλα και την προσθήκη Salt
+def saveHash(hashFile,salt,hashValue):
    
    with open(hashFile,"w") as f:
-     
+     f.write(salt.hex()+"\n")
      f.write(hashValue)
 
    print(f"Το hash αποθηκεύτηκε στο αρχείο {hashFile}")
@@ -177,56 +197,67 @@ while True:
 
             #υπολογισμός MD5 hash
             if algSelect==1:
-
-                #Υπολογισμός του MD5 hash του αρχείου χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
-                hashMD5=hashlib.md5(readFile).hexdigest()
+                
+                #Υπολογισμός του MD5 hash του αρχείου και προσθήκη salt χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
+                salt,readFileSalted=add_Salt(giveFile)
+                hashMD5=hashlib.md5(readFileSalted).hexdigest()
                 print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
-                saveHash(file_md5,hashMD5)
+                saveHash(file_md5,salt,hashMD5)
                 
 
             #υπολογισμός SHA256 hash
             elif algSelect==2:
-
-                #Υπολογισμός του SHA256 hash του αρχείου χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
-                hashSHA256=hashlib.sha256(readFile).hexdigest()
+              
+                #Υπολογισμός του SHA256 hash του αρχείου και προσθήκη salt χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA256=hashlib.sha256(readFileSalted).hexdigest()
                 print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
-                saveHash(file_sha256,hashSHA256)
+                saveHash(file_sha256,salt,hashSHA256)
                 
 
             #υπολογισμός SHA3 hash
             elif algSelect==3:
 
-                #Υπολογισμός του SHA3 hash του αρχείου χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
-                hashSHA3=hashlib.sha3_256(readFile).hexdigest()
+                #Υπολογισμός του SHA3 hash του αρχείου και προσθήκη salt χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA3=hashlib.sha3_256(readFileSalted).hexdigest()
                 print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")  
-                saveHash(file_sha3,hashSHA3)
+                saveHash(file_sha3,salt,hashSHA3)
                 
             elif algSelect==4:
             
-                #Υπολογισμός του διπλού SHA256 hash του αρχείου χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
-                hashSHA256=hashlib.sha256(readFile).hexdigest()
+                #Υπολογισμός του διπλού SHA256 hash του αρχείου και προσθήκη salt χρησιμοποιώντας τη βιβλιοθήκη hashlib και αποθήκευση του αποτελέσματος σε μεταβλητή
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA256=hashlib.sha256(readFileSalted).hexdigest()
                 hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
                 print(f"Το διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
-                saveHash(file_sha256double,hashSHA256double)
+                saveHash(file_sha256double,salt,hashSHA256double)
                 
             #υπολογισμός όλων των hash
             elif algSelect==5:
-            
-                hashMD5=hashlib.md5(readFile).hexdigest()
+
+                salt,readFileSalted=add_Salt(giveFile)
+                hashMD5=hashlib.md5(readFileSalted).hexdigest()
                 print(f"Το MD5 hash του {giveFile} είναι:{hashMD5}")
-                saveHash(file_md5,hashMD5)
+                saveHash(file_md5,salt,hashMD5)
 
-                hashSHA256=hashlib.sha256(readFile).hexdigest()
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA256=hashlib.sha256(readFileSalted).hexdigest()
                 print(f"Το SHA256 hash του {giveFile} είναι:{hashSHA256}")
-                saveHash(file_sha256,hashSHA256)
+                saveHash(file_sha256,salt,hashSHA256)
 
-                hashSHA3=hashlib.sha3_256(readFile).hexdigest()
-                print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")
-                saveHash(file_sha3,hashSHA3)
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA3=hashlib.sha3_256(readFileSalted).hexdigest()
+                print(f"Το SHA3 hash του {giveFile} είναι:{hashSHA3}")  
+                saveHash(file_sha3,salt,hashSHA3)
 
+                salt,readFileSalted=add_Salt(giveFile)
+                hashSHA256=hashlib.sha256(readFileSalted).hexdigest()
                 hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
                 print(f"Το διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
-                saveHash(file_sha256double,hashSHA256double)
+                saveHash(file_sha256double,salt,hashSHA256double)
+            
+
                 
                 
             #Ελεγχος για μη έγκυρη επιλογή αλγορίθμου
@@ -269,52 +300,34 @@ while True:
 
                 if hashFileSelect==1:
                     
-                    #Υπολογισμός του τρέχοντος MD5 hash του αρχείου και ελεγχος της ακεραιότητας συγκρίνοντας το τρέχον hash με το αποθηκευμένο hash
-                    hashMD5=hashlib.md5(readFile).hexdigest()
-                    print(f"Το τρέχον MD5 hash του {giveFile} είναι:{hashMD5}")
-                    hash_integrityCheck(file_md5,hashMD5)
+                    hash_integrityCheck(file_md5,giveFile,"md5")
 
                 elif hashFileSelect==2:
 
                     #Υπολογισμός του τρέχοντος SHA256 hash του αρχείου και ελεγχος της ακεραιότητας συγκρίνοντας το τρέχον hash με το αποθηκευμένο hash
-                    hashSHA256=hashlib.sha256(readFile).hexdigest()
-                    print(f"Το τρέχον SHA256 hash του {giveFile} είναι:{hashSHA256}")
-                    hash_integrityCheck(file_sha256,hashSHA256)
+                    hash_integrityCheck(file_sha256,giveFile,"sha256")
 
                 elif hashFileSelect==3:
 
                     #Υπολογισμός του τρέχοντος SHA3 hash του αρχείου και ελεγχος της ακεραιότητας συγκρίνοντας το τρέχον hash με το αποθηκευμένο hash
-                    hashSHA3=hashlib.sha3_256(readFile).hexdigest()
-                    print(f"Το τρέχον SHA3 hash του {giveFile} είναι:{hashSHA3}")
-                    hash_integrityCheck(file_sha3,hashSHA3)
+                    hash_integrityCheck(file_sha3,giveFile,"sha3")
 
                 elif hashFileSelect==4:
 
                     #Υπολογισμός του τρέχοντος διπλού SHA256 hash του αρχείου και ελεγχος της ακεραιότητας συγκρίνοντας το τρέχον hash με το αποθηκευμένο hash
-                    hashSHA256=hashlib.sha256(readFile).hexdigest()
-                    hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
-                    print(f"Το τρέχον διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
-                    hash_integrityCheck(file_sha256double,hashSHA256double)
+                    hash_integrityCheck(file_sha256double,giveFile,"sha256double")
 
                 elif hashFileSelect==5:
 
                     #Υπολογισμός όλων των τρέχοντων hash του αρχείου και ελεγχος της ακεραιότητας συγκρίνοντας τα τρέχοντα hash με τα αποθηκευμένα hash
-                    hashMD5=hashlib.md5(readFile).hexdigest()
-                    print(f"Το τρέχον MD5 hash του {giveFile} είναι:{hashMD5}")
-                    hash_integrityCheck(file_md5,hashMD5)
+        
+                    hash_integrityCheck(file_md5,giveFile,"md5")
 
-                    hashSHA256=hashlib.sha256(readFile).hexdigest()
-                    print(f"Το τρέχον SHA256 hash του {giveFile} είναι:{hashSHA256}")
-                    hash_integrityCheck(file_sha256,hashSHA256)
+                    hash_integrityCheck(file_sha256,giveFile,"sha256")
 
-                    hashSHA3=hashlib.sha3_256(readFile).hexdigest()
-                    print(f"Το τρέχον SHA3 hash του {giveFile} είναι:{hashSHA3}")
-                    hash_integrityCheck(file_sha3,hashSHA3) 
+                    hash_integrityCheck(file_sha3,giveFile,"sha3") 
 
-                    hashSHA256=hashlib.sha256(readFile).hexdigest()
-                    hashSHA256double=hashlib.sha256(hashSHA256.encode()).hexdigest()
-                    print(f"Το τρέχον διπλό SHA256 hash του {giveFile} είναι:{hashSHA256double}")
-                    hash_integrityCheck(file_sha256double,hashSHA256double)
+                    hash_integrityCheck(file_sha256double,giveFile,"sha256double")
 
                 #Ελεγχος για μη έγκυρη επιλογή αλγορίθμου
                 else:
@@ -342,6 +355,7 @@ while True:
     elif epilogi==4:
         #Έλεγχος ταυτότητας με 2FA για μόνιμη ταυτοποίηση και αποθήκευση της πληροφορίας σε μεταβλητή 
         #ώστε να μην χρειάζεται ο χρήστης να κάνει επαναληπτική ταυτοποίηση με 2FA για κάθε επιλογή στο menu
+        print("Επίλεξες έλεγχο ταυτότητας με 2FA")
         if auth_2FA():
             check=True
         else:
