@@ -191,7 +191,6 @@ file_sha256double=f"{nameWithoutTxt}_sha256double.hash"
 
 check=False
 while True:
-
     menu()
     epilogi=int(input("Επίλεξε  (1-5):"))
 
